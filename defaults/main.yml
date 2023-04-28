@@ -16,19 +16,25 @@ semaphore_mysql_allowed_host: "localhost"
 
 # the default user that should be created
 semaphore_default_user: "admin"
+# create default user with admin priviledges
+# (otherwise you need to execute "/opt/semaphore/semaphore "):
+semaphore_default_user_make_admin: true
 semaphore_default_user_name: "{{ semaphore_default_user }}"
 semaphore_default_user_password: "admin"
 semaphore_default_user_mail: "admin@example.com"
 
 # sempahore binary source
-semaphore_version: "2.8.77"
+# if not set anywhere, defaults to latest version:
+# semaphore_version: "2.8.77"
+
 semaphore_download_url: "https://github.com/ansible-semaphore/semaphore/releases/download/v{{ semaphore_version }}/semaphore_{{ semaphore_version }}_linux_amd64.tar.gz"
-semaphore_download_checksum: "sha256:a67a6ef4a49bf7613e87628bf35db7d239050a99d7123a278c6cc85b2bff7997"
+# if not set dynamically determined:
+# semaphore_download_checksum: "sha256:a67a6ef4a49bf7613e87628bf35db7d239050a99d7123a278c6cc85b2bff7997"
 
 # binary paths and service identifiers
 semaphore_user: "semaphore"
 semaphore_path: "/opt/semaphore"
-semaphore_config_path: "/etc/semaphore/semaphore.json"
+semaphore_config_path: "/etc/semaphore/config.json"
 semaphore_tmp_path: "{{ semaphore_path }}/tmp"
 semaphore_executable: "{{ semaphore_path }}/semaphore"
 semaphore_command: "{{ semaphore_executable }} --config {{ semaphore_config_path | quote }}"
@@ -37,7 +43,8 @@ semaphore_identifier: "{{ semaphore_user }}"
 semaphore_systemd_unit_path: "/etc/systemd/system/{{ semaphore_identifier }}.service"
 
 # semaphore config options
-semaphore_port: 3000
+semaphore_listenip: "127.0.0.1"
+semaphore_listenport: 3000
 semaphore_addn_config: {}
 
 # mysql command lines to create default user
@@ -60,5 +67,24 @@ semaphore_config_object:
     user: "{{ semaphore_mysql_user }}"
     pass: "{{ semaphore_mysql_password }}"
     name: "{{ semaphore_mysql_db }}"
-  port: ":{{ semaphore_port }}"
+  port: ":{{ semaphore_listenport }}"
   tmp_path: "{{ semaphore_tmp_path }}"
+
+# use nginx to make a ssl reverse-proxy-config:
+semaphore_nginx_deploy_reverseconfig: true
+semaphore_nginx_template: "nginx-semaphore.j2"
+semaphore_nginx_remove_default_config: false
+semaphore_nginx_config_filename: semaphore
+
+# if you use https://github.com/selfhostx/ansible/tree/main/roles/nginx_common than set to "true" here:
+semaphore_nginx_use_nginx_common_snippet: false
+semaphore_nginx_snippet_directory: "{{ nginx_snippet_directory | default('/etc/nginx/snippets') }}"
+semaphore_nginx_tls_hardening_snippet: "{{ semaphore_nginx_snippet_directory }}/tls-hardening.conf"
+
+# enable HSTS (not used when semaphore_nginx_use_nginx_common_snippet: true):
+semaphore_tls_hsts_enable: true
+semaphore_tls_hsts_time: 31536000
+
+# path to ssl certificates, defaults to letsencrypt paths:
+semaphore_nginx_ssl_certificate: "/etc/letsencrypt/live/{{ semaphore_hostname }}/fullchain.pem"
+semaphore_nginx_ssl_certificate_key: "/etc/letsencrypt/live/{{ semaphore_hostname }}/privkey.pem"

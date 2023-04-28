@@ -4,7 +4,7 @@ Ansible role to install and configure the [Ansible UI Semaphore](https://github.
 
 ## Requirements
 
-None. But for a production environment you should install a webserver as proxy for ssl termination.
+None. But for a production environment you should install a webserver as proxy for ssl termination (role is prepared for nginx).
 
 ## Example playbook
 
@@ -31,7 +31,7 @@ None of the variables below are required.
 
 | Variable                 | Default   | Comment |
 | :---                     | :---      | :---    |
-| `semaphore_version`      | `v2.8.77`  | the version to download, also see `semaphore_download_url` and `semaphore_download_checksum` |
+| `semaphore_version`      | latest available version  | the version to download (example: 2.8.77), also see `semaphore_download_url` and `semaphore_download_checksum` |
 | `semaphore_mysql_install` | `true`   | whether to install mysql on the host, installs with the password `mysql_root_password` |
 | `semaphore_mysql_create_db` | `true` | whether to create the mysql db and user |
 | `semaphore_mysql_host`:`semaphore_mysql_port` | `127.0.0.1`:`3306` | the mysql host |
@@ -39,14 +39,22 @@ None of the variables below are required.
 | `semaphore_mysql_user`   | semaphore | the mysql user |
 | `semaphore_mysql_password` | semaphore | the mysql user password |
 | `semaphore_user`         | semaphore | the user and systemd identifier semaphore runs as |
-| `semaphore_port`         | `3000`    | the port semaphore binds to |
+| `semaphore_listenip`     | `127.0.0.1`    | the IP semaphore binds to |
+| `semaphore_listenport`   | `3000`    | the port semaphore binds to |
 | `semaphore_path`         | /opt/semaphore | destination for the binary |
 | `semaphore_addn_config`  | `{}`      | for all options see the [source](https://github.com/ansible-semaphore/semaphore/blob/master/util/config.go#L36-L72) |
 | `semaphore_config_path`  | /etc/semaphore/semaphore.json | config file |
 | `semaphore_default_user` | admin | login name of the default user |
+| `semaphore_default_user_make_admin` | true | make default user admin |
 | `semaphore_default_user_name` | `semaphore_default_user` | his human readable name |
 | `semaphore_default_user_password` | admin | the password |
 | `semaphore_default_user_mail` | admin@example.com | and mail adress |
+| `semaphore_default_user_password` | `admin` | change to a secure value! |
+| :---                     | :---      | :---    |
+| `semaphore_nginx_deploy_reverseconfig` | false | set to true to enable nginx |
+| `semaphore_nginx_config_filename` | `semaphore` | filename of nginx vhost-config |
+| `semaphore_nginx_ssl_certificate` | `/etc/letsencrypt/live/{{ semaphore_hostname }}/fullchain.pem` | path to tls certificate |
+| `semaphore_nginx_ssl_certificate_key` | `/etc/letsencrypt/live/{{ semaphore_hostname }}/privkey.pem` | path to tls key |
 
 For all options see [defaults/main.yml](defaults/main.yml)
 
@@ -61,3 +69,5 @@ Molecule is used for testing, the webinterface of the centos machine will be exp
 ## License
 
 MIT
+
+Role forked from https://github.com/morbidick/ansible-role-semaphore

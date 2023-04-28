@@ -1,7 +1,16 @@
 ---
+- name: Include OS-specific variables
+  ansible.builtin.include_vars: "vars-{{ ansible_os_family }}.yml"
+  tags:
+    - always
+
 - name: Ensure MySQL Server
   ansible.builtin.import_tasks: setup-mysql.yml
   when: semaphore_mysql_install or semaphore_mysql_create_db
+
+- name: Nginx Config
+  ansible.builtin.import_tasks: nginx.yml
+  when: semaphore_nginx_deploy_reverseconfig
 
 - name: Install dependencies
   ansible.builtin.package:
@@ -21,6 +30,27 @@
   ansible.builtin.user:
     name: "{{ semaphore_user }}"
     createhome: false
+
+- name: Get Semaphore Release Info
+  ansible.builtin.uri:
+    url: 'https://api.github.com/repos/ansible-semaphore/semaphore/releases/latest'
+    return_content: true
+  register: 'semaphore_version_github'
+
+- name: Determine current Semaphore version
+  ansible.builtin.set_fact:
+    semaphore_version: "{{ semaphore_version_github['json']['tag_name'][1:] }}"
+
+# FIXME implement lookup of checksum from semaphore_checksums_github.content
+#- name: Get checksum file of current Semaphore version
+#  ansible.builtin.uri:
+#    url: "https://github.com/ansible-semaphore/semaphore/releases/download/v{{ semaphore_version }}/semaphore_{{ semaphore_version }}_checksums.txt"
+#    return_content: true
+#  register: 'semaphore_checksums_github'
+
+#- name: Set checksum from file
+#  ansible.builtin.set_fact:
+#    semaphore_download_checksum: "{{ semaphore_checksums_github['json']['tag_name'][2:] }}"
 
 - name: Create application directories
   ansible.builtin.file:
@@ -94,15 +124,18 @@
   notify:
     - Semaphore restart
 
-- name: Check users
-  ansible.builtin.command: "{{ semaphore_command }} user list"
+- name: Check if default user already exists (fails if not)
+  ansible.builtin.command: "{{ semaphore_command }} user get --login {{ semaphore_default_user | quote }}"
   register: semaphore_users
+  ignore_errors: true
   changed_when: false
 
 - name: Create default user
-  ansible.builtin.command: "{{ semaphore_command }} user add --name {{ semaphore_default_user_name | quote }} --login {{ semaphore_default_user | quote }} --email {{ semaphore_default_user_mail | quote }} --password {{ semaphore_default_user_password | quote }}"
-  when: semaphore_users.stdout == ""
+  ansible.builtin.command: "{{ semaphore_command }} user add {% if semaphore_default_user_make_admin %}--admin{% endif %} --name {{ semaphore_default_user_name | quote }} --login {{ semaphore_default_user | quote }} --email {{ semaphore_default_user_mail | quote }} --password {{ semaphore_default_user_password | quote }}"
+  # when: semaphore_users.stdout == ""
+  when: semaphore_users.rc != 0
   changed_when: true
+  no_log: true
 
 - name: Deploy systemd service file
   ansible.builtin.template:
