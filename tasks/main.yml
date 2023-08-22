@@ -25,6 +25,7 @@
   ansible.builtin.pip:
     name: ansible
     state: present
+    extra_args: "--break-system-packages"
 
 - name: Add semaphore user
   ansible.builtin.user:
@@ -36,10 +37,13 @@
     url: 'https://api.github.com/repos/ansible-semaphore/semaphore/releases/latest'
     return_content: true
   register: 'semaphore_version_github'
+  when: semaphore_version is not defined or semaphore_version == "latest"
 
 - name: Determine current Semaphore version
   ansible.builtin.set_fact:
     semaphore_version: "{{ semaphore_version_github['json']['tag_name'][1:] }}"
+  when: semaphore_version is not defined or semaphore_version == "latest"
+
 
 # FIXME implement lookup of checksum from semaphore_checksums_github.content
 #- name: Get checksum file of current Semaphore version
@@ -114,6 +118,7 @@
     content: "{{ semaphore_config_previous_with_secrets | combine(semaphore_config_object) | combine(semaphore_addn_config) | to_nice_json }}"
     dest: "{{ semaphore_config_path }}"
     mode: 0644
+  no_log: true
   notify:
     - Semaphore restart
 
