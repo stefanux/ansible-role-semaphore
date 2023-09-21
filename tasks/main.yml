@@ -44,6 +44,9 @@
     semaphore_version: "{{ semaphore_version_github['json']['tag_name'][1:] }}"
   when: semaphore_version is not defined or semaphore_version == "latest"
 
+- name: Print semaphore version to be installed
+  debug:
+    msg: "version: {{ semaphore_version }}"
 
 # FIXME implement lookup of checksum from semaphore_checksums_github.content
 #- name: Get checksum file of current Semaphore version
@@ -135,10 +138,9 @@
   ignore_errors: true
   changed_when: false
 
-- name: Create default user
+- name: Create default user (may fail if already present)
   ansible.builtin.command: "{{ semaphore_command }} user add {% if semaphore_default_user_make_admin %}--admin{% endif %} --name {{ semaphore_default_user_name | quote }} --login {{ semaphore_default_user | quote }} --email {{ semaphore_default_user_mail | quote }} --password {{ semaphore_default_user_password | quote }}"
   # when: semaphore_users.stdout == ""
-  when: semaphore_users.rc != 0
   changed_when: true
   no_log: true
 
