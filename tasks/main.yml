@@ -103,11 +103,13 @@
   register: semaphore_previous_config_content
   ignore_errors: true
   failed_when: false
+  no_log: true
 
 - name: Parse previous config
   ansible.builtin.set_fact:
     semaphore_config_previous: "{{ semaphore_previous_config_content.content | b64decode | from_json }}"
   when: semaphore_previous_config_content.content is defined
+  no_log: true
 
 - name: Ensure secrets in config
   ansible.builtin.set_fact:
@@ -115,6 +117,7 @@
       cookie_hash: "{{ semaphore_config_previous.cookie_hash | default(semaphore_config_base_generated_secrets.cookie_hash) }}"
       cookie_encryption: "{{ semaphore_config_previous.cookie_encryption | default(semaphore_config_base_generated_secrets.cookie_encryption) }}"
       access_key_encryption: "{{ semaphore_config_previous.access_key_encryption | default(semaphore_config_base_generated_secrets.access_key_encryption) }}"
+  no_log: true
 
 - name: Create config file
   ansible.builtin.copy:
