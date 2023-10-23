@@ -71,3 +71,7 @@ Molecule is used for testing, the webinterface of the centos machine will be exp
 MIT
 
 Role forked from https://github.com/morbidick/ansible-role-semaphore
+
+
+changes from forked roles are mostly on vars, added nginx reverse-config (see this [commit](https://github.com/morbidick/ansible-role-semaphore/commit/f1720b0ea88931c780c05bf4396f29b12786cd33) or this [comparison](https://github.com/morbidick/ansible-role-semaphore/compare/main...stefanux:ansible-role-semaphore:main) for details.
+will backport upstream changes if useful.
