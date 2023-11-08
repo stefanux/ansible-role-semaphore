@@ -143,7 +143,7 @@
 
 - name: Create default user (may fail if already present)
   ansible.builtin.command: "{{ semaphore_command }} user add {% if semaphore_default_user_make_admin %}--admin{% endif %} --name {{ semaphore_default_user_name | quote }} --login {{ semaphore_default_user | quote }} --email {{ semaphore_default_user_mail | quote }} --password {{ semaphore_default_user_password | quote }}"
-  # when: semaphore_users.stdout == ""
+  when: semaphore_users.stdout == ""
   changed_when: true
   no_log: true
 
