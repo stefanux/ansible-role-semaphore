@@ -67,6 +67,7 @@ semaphore_config_object:
     user: "{{ semaphore_mysql_user }}"
     pass: "{{ semaphore_mysql_password }}"
     name: "{{ semaphore_mysql_db }}"
+  dialect: "mysql"
   port: ":{{ semaphore_listenport }}"
   tmp_path: "{{ semaphore_tmp_path }}"
 
