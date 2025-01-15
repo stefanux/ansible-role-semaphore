@@ -1,5 +1,7 @@
 # Ansible UI Semaphore
 
+fork from morbidick/ansible-role-semaphore:main, moved to https://github.com/selfhostx/ansible/tree/main/roles/semaphore.
+
 Ansible role to install and configure the [Ansible UI Semaphore](https://github.com/ansible-semaphore/semaphore).
 
 ## Requirements
